@@ -6,6 +6,7 @@ import Navbar    from '@/components/layout/Navbar'
 import BottomNav from '@/components/layout/BottomNav'
 import Footer    from '@/components/layout/Footer'
 
+// Lazy loading
 const Home          = lazy(() => import('@/pages/Home'))
 const Search        = lazy(() => import('@/pages/Search'))
 const ProductDetail = lazy(() => import('@/pages/ProductDetail'))
@@ -15,6 +16,9 @@ const Favorites     = lazy(() => import('@/pages/Favorites'))
 const Boutiques     = lazy(() => import('@/pages/Boutiques'))
 const Compte        = lazy(() => import('@/pages/compte'))
 const Promotions    = lazy(() => import('@/pages/Promotions'))
+
+// ✅ NOUVEAU : Page Callback
+const AuthCallback  = lazy(() => import('@/pages/AuthCallback'))
 
 function Loading() {
   return <div style={{ paddingTop: 80 }}><div className="spinner" /></div>
@@ -33,6 +37,11 @@ export default function App() {
           <Route path="/panier"        element={<Cart />} />
           <Route path="/connexion"     element={<Auth />} />
           <Route path="/inscription"   element={<Auth />} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
+          
+          {/* ✅ AJOUTE CETTE ROUTE */}
+          <Route path="/auth/callback" element={<AuthCallback />} />
+
           <Route path="/favoris"       element={<Favorites />} />
           <Route path="/boutiques"     element={<Boutiques />} />
           <Route path="/boutique/:slug" element={<Boutiques />} />
@@ -44,13 +53,7 @@ export default function App() {
       <Footer />
       <BottomNav />
 
-      <Toaster
-        position="bottom-center"
-        toastOptions={{
-          style: { fontFamily: 'DM Sans, sans-serif', fontSize: '14px', borderRadius: '12px' },
-          success: { iconTheme: { primary: '#d4537e', secondary: '#fff' } },
-        }}
-      />
+      <Toaster position="bottom-center" /* ... */ />
     </BrowserRouter>
   )
 }

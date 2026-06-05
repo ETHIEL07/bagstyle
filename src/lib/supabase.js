@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+const AuthCallback  = lazy(() => import('@/pages/AuthCallback'))
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
@@ -25,10 +26,13 @@ export const signInWithGoogle = () => {
   return supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: `${window.location.origin}/auth/callback`,
+      redirectTo: 'https://bagstyle.vercel.app/auth/callback',
+      queryParams: {
+        prompt: 'consent',
+      },
     },
-  })
-}
+  });
+};
 
 // ── DB helpers ────────────────────────────────────────────────
 export const db = {
