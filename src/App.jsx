@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { useEffect, useState } from 'react';
 
@@ -9,7 +9,6 @@ import Navbar from '@/components/layout/Navbar';
 import BottomNav from '@/components/layout/BottomNav';
 import Footer from '@/components/layout/Footer';
 
-// Imports directs - SANS LAZY
 import Home from '@/pages/Home';
 import Search from '@/pages/Search';
 import ProductDetail from '@/pages/ProductDetail';
@@ -20,11 +19,15 @@ import Boutiques from '@/pages/Boutiques';
 import Compte from '@/pages/compte';
 import Promotions from '@/pages/Promotions';
 
+// Pages où on ne veut PAS afficher Navbar / Footer / BottomNav
+const AUTH_PATHS = ['/connexion', '/inscription', '/auth/callback'];
+
 function Loading() {
   return <div style={{ paddingTop: 80, textAlign: 'center' }}>Chargement...</div>;
 }
 
-function HomeRedirect() {
+// Garde : redirige vers /connexion si non connecté
+function PrivateRoute({ children }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
@@ -40,38 +43,51 @@ function HomeRedirect() {
       }
     };
     checkAuth();
+
+    // Écouter les changements de session (ex : après Google OAuth)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsAuthenticated(!!session);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   if (isLoading) return <Loading />;
-  
-  return isAuthenticated ? <Home /> : <Navigate to="/connexion" replace />;
+  return isAuthenticated ? children : <Navigate to="/connexion" replace />;
 }
 
-export default function App() {
+// Layout principal avec affichage conditionnel
+function AppLayout() {
+  const location = useLocation();
+  const isAuthPage = AUTH_PATHS.includes(location.pathname);
+
   return (
-    <BrowserRouter>
-      <Navbar />
+    <>
+      {!isAuthPage && <Navbar />}
 
       <Routes>
-        <Route path="/" element={<HomeRedirect />} />
-        
-        <Route path="/search"        element={<Search />} />
-        <Route path="/produit/:id"   element={<ProductDetail />} />
-        <Route path="/panier"        element={<Cart />} />
-        <Route path="/boutiques"     element={<Boutiques />} />
-        <Route path="/boutique/:slug" element={<Boutiques />} />
-        <Route path="/promotions"    element={<Promotions />} />
+        {/* La racine redirige vers /connexion — la page Auth gère la redirection si déjà connecté */}
+        <Route path="/" element={<Navigate to="/connexion" replace />} />
 
+        {/* Pages publiques (auth) */}
         <Route path="/connexion"     element={<Auth />} />
         <Route path="/inscription"   element={<Auth />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
 
-        <Route path="/favoris"       element={<Favorites />} />
-        <Route path="/compte"        element={<Compte />} />
+        {/* Pages protégées */}
+        <Route path="/accueil"         element={<PrivateRoute><Home /></PrivateRoute>} />
+        <Route path="/search"          element={<PrivateRoute><Search /></PrivateRoute>} />
+        <Route path="/produit/:id"     element={<PrivateRoute><ProductDetail /></PrivateRoute>} />
+        <Route path="/panier"          element={<PrivateRoute><Cart /></PrivateRoute>} />
+        <Route path="/boutiques"       element={<PrivateRoute><Boutiques /></PrivateRoute>} />
+        <Route path="/boutique/:slug"  element={<PrivateRoute><Boutiques /></PrivateRoute>} />
+        <Route path="/promotions"      element={<PrivateRoute><Promotions /></PrivateRoute>} />
+        <Route path="/favoris"         element={<PrivateRoute><Favorites /></PrivateRoute>} />
+        <Route path="/compte"          element={<PrivateRoute><Compte /></PrivateRoute>} />
       </Routes>
 
-      <Footer />
-      <BottomNav />
+      {!isAuthPage && <Footer />}
+      {!isAuthPage && <BottomNav />}
 
       <Toaster
         position="bottom-center"
@@ -80,6 +96,14 @@ export default function App() {
           success: { iconTheme: { primary: '#d4537e', secondary: '#fff' } },
         }}
       />
+    </>
+  );
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <AppLayout />
     </BrowserRouter>
   );
 }
