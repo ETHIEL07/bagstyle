@@ -2,7 +2,6 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import { useEffect, useState } from 'react'
 
-// Imports importants
 import AuthCallback from '@/pages/AuthCallback'
 import { supabase } from '@/lib/supabase'
 
@@ -10,7 +9,7 @@ import Navbar    from '@/components/layout/Navbar'
 import BottomNav from '@/components/layout/BottomNav'
 import Footer    from '@/components/layout/Footer'
 
-// Import normal de toutes les pages (plus stable)
+// Imports normaux (sans lazy)
 import Home          from '@/pages/Home'
 import Search        from '@/pages/Search'
 import ProductDetail from '@/pages/ProductDetail'
@@ -25,7 +24,7 @@ function Loading() {
   return <div style={{ paddingTop: 80, textAlign: 'center' }}>Chargement...</div>
 }
 
-// Redirection : si pas connecté → /connexion
+// Redirection automatique sur la page d'accueil
 function HomeRedirect() {
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -64,7 +63,7 @@ export default function App() {
         <Route path="/boutique/:slug" element={<Boutiques />} />
         <Route path="/promotions"    element={<Promotions />} />
 
-        {/* Auth */}
+        {/* Auth pages */}
         <Route path="/connexion"     element={<Auth />} />
         <Route path="/inscription"   element={<Auth />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
