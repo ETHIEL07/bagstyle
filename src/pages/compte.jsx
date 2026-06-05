@@ -1,9 +1,10 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { User, Mail, Phone, MapPin, ShoppingBag, Heart, LogOut, Edit2, Check, Camera } from 'lucide-react'
+import { User, Mail, Phone, MapPin, ShoppingBag, Heart, LogOut, Edit2, Check, Camera, Package, ChevronDown, ChevronUp, Clock } from 'lucide-react'
 import { useAuthStore } from '@/lib/store'
 import { signOut, supabase } from '@/lib/supabase'
 import { useCartStore, useFavStore, selectCount } from '@/lib/store'
+import { formatCFA } from '@/lib/mockData'
 import toast from 'react-hot-toast'
 import styles from './compte.module.css'
 
@@ -18,6 +19,102 @@ function requestGeolocation(setLocLabel) {
     },
     () => toast('Localisation non disponible', { icon: '📍' }),
     { enableHighAccuracy: true, timeout: 8000 }
+  )
+}
+
+const STATUS_LABEL = {
+  pending:    { label: 'En attente',  color: '#f59e0b', bg: '#fffbeb' },
+  confirmed:  { label: 'Confirmée',   color: '#3b82f6', bg: '#eff6ff' },
+  delivered:  { label: 'Livrée',      color: '#22c55e', bg: '#f0fdf4' },
+  cancelled:  { label: 'Annulée',     color: '#ef4444', bg: '#fef2f2' },
+}
+
+function OrdersSection({ userId }) {
+  const [orders, setOrders]       = useState([])
+  const [loading, setLoading]     = useState(true)
+  const [expanded, setExpanded]   = useState(null)
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      setLoading(true)
+      const { data, error } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+      if (!error && data) setOrders(data)
+      setLoading(false)
+    }
+    fetchOrders()
+  }, [userId])
+
+  if (loading) return (
+    <div className={styles.ordersLoading}>
+      <span className={styles.spinnerSm} /> Chargement des commandes...
+    </div>
+  )
+
+  if (orders.length === 0) return (
+    <div className={styles.ordersEmpty}>
+      <Package size={36} color="#f8bbd0" />
+      <p>Aucune commande pour l'instant</p>
+      <Link to="/search" className="btn btn-primary" style={{ fontSize: 13, padding: '8px 18px' }}>
+        Découvrir la boutique
+      </Link>
+    </div>
+  )
+
+  return (
+    <div className={styles.ordersList}>
+      {orders.map(order => {
+        const status = STATUS_LABEL[order.status] || STATUS_LABEL.pending
+        const isOpen = expanded === order.id
+        const items  = order.items_snapshot || []
+        const date   = new Date(order.created_at).toLocaleDateString('fr-FR', {
+          day: '2-digit', month: 'short', year: 'numeric'
+        })
+
+        return (
+          <div key={order.id} className={styles.orderCard}>
+            <div className={styles.orderHeader} onClick={() => setExpanded(isOpen ? null : order.id)}>
+              <div className={styles.orderLeft}>
+                <div className={styles.orderNum}>Commande #{order.id.slice(-6).toUpperCase()}</div>
+                <div className={styles.orderMeta}>
+                  <Clock size={11} /> {date} · {order.delivery_mode === 'livraison' ? '🚚 Livraison' : '🏪 Retrait'}
+                </div>
+              </div>
+              <div className={styles.orderRight}>
+                <span className={styles.orderStatus} style={{ color: status.color, background: status.bg }}>
+                  {status.label}
+                </span>
+                <div className={styles.orderTotal}>{formatCFA(order.total_amount)}</div>
+                {isOpen ? <ChevronUp size={16} color="#aaa" /> : <ChevronDown size={16} color="#aaa" />}
+              </div>
+            </div>
+
+            {isOpen && (
+              <div className={styles.orderBody}>
+                {items.map((item, i) => (
+                  <div key={i} className={styles.orderItem}>
+                    <span className={styles.orderItemName}>{item.name} <span className={styles.orderItemQty}>×{item.quantity}</span></span>
+                    <span className={styles.orderItemPrice}>{formatCFA((item.price || 0) * item.quantity)}</span>
+                  </div>
+                ))}
+                <div className={styles.orderTotalRow}>
+                  <strong>Total</strong>
+                  <strong>{formatCFA(order.total_amount)}</strong>
+                </div>
+                {order.delivery_address && (
+                  <div className={styles.orderAddress}>
+                    <MapPin size={12} /> {order.delivery_address}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )
+      })}
+    </div>
   )
 }
 
@@ -59,7 +156,7 @@ export default function Compte() {
       setAvatarUrl(data.publicUrl)
       await supabase.auth.updateUser({ data: { avatar_url: data.publicUrl } })
       toast.success('Photo de profil mise à jour ✅')
-    } catch (err) {
+    } catch {
       toast.error("Erreur lors de l'upload")
     } finally {
       setUploadingAvatar(false)
@@ -137,7 +234,6 @@ export default function Compte() {
             </div>
           )}
 
-          {/* Localisation modifiable au clic */}
           <div className={styles.infoRow} style={{ cursor: 'pointer' }} onClick={() => requestGeolocation(setLocLabel)}>
             <MapPin size={15} className={styles.infoIcon} />
             <div style={{ flex: 1 }}>
@@ -171,7 +267,12 @@ export default function Compte() {
           </div>
         </div>
 
-        {/* Bouton déconnexion stylé */}
+        {/* Mes commandes */}
+        <div className={styles.section}>
+          <h3 className={styles.sectionTitle}>Mes commandes</h3>
+          <OrdersSection userId={user.id} />
+        </div>
+
         <button className={styles.logoutBtn} onClick={handleLogout}>
           <span className={styles.logoutIcon}><LogOut size={17} /></span>
           <span>Se déconnecter</span>
