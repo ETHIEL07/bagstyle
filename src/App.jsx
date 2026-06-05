@@ -1,30 +1,29 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import { Toaster } from 'react-hot-toast'
-import { useEffect, useState } from 'react'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
+import { useEffect, useState } from 'react';
 
-import AuthCallback from '@/pages/AuthCallback'
-import { supabase } from '@/lib/supabase'
+import AuthCallback from '@/pages/AuthCallback';
+import { supabase } from '@/lib/supabase';
 
-import Navbar    from '@/components/layout/Navbar'
-import BottomNav from '@/components/layout/BottomNav'
-import Footer    from '@/components/layout/Footer'
+import Navbar from '@/components/layout/Navbar';
+import BottomNav from '@/components/layout/BottomNav';
+import Footer from '@/components/layout/Footer';
 
-// Imports normaux (sans lazy)
-import Home          from '@/pages/Home'
-import Search        from '@/pages/Search'
-import ProductDetail from '@/pages/ProductDetail'
-import Cart          from '@/pages/Cart'
-import Auth          from '@/pages/Auth'
-import Favorites     from '@/pages/Favorites'
-import Boutiques     from '@/pages/Boutiques'
-import Compte        from '@/pages/compte'
-import Promotions    from '@/pages/Promotions'
+// Imports directs - SANS LAZY
+import Home from '@/pages/Home';
+import Search from '@/pages/Search';
+import ProductDetail from '@/pages/ProductDetail';
+import Cart from '@/pages/Cart';
+import Auth from '@/pages/Auth';
+import Favorites from '@/pages/Favorites';
+import Boutiques from '@/pages/Boutiques';
+import Compte from '@/pages/compte';
+import Promotions from '@/pages/Promotions';
 
 function Loading() {
-  return <div style={{ paddingTop: 80, textAlign: 'center' }}>Chargement...</div>
+  return <div style={{ paddingTop: 80, textAlign: 'center' }}>Chargement...</div>;
 }
 
-// Redirection automatique sur la page d'accueil
 function HomeRedirect() {
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -63,7 +62,6 @@ export default function App() {
         <Route path="/boutique/:slug" element={<Boutiques />} />
         <Route path="/promotions"    element={<Promotions />} />
 
-        {/* Auth pages */}
         <Route path="/connexion"     element={<Auth />} />
         <Route path="/inscription"   element={<Auth />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
@@ -83,5 +81,5 @@ export default function App() {
         }}
       />
     </BrowserRouter>
-  )
+  );
 }
