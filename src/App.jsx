@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import { Suspense, lazy } from 'react'
+import AuthCallback from '@/pages/AuthCallback';
 
 import Navbar    from '@/components/layout/Navbar'
 import BottomNav from '@/components/layout/BottomNav'
@@ -17,8 +18,6 @@ const Boutiques     = lazy(() => import('@/pages/Boutiques'))
 const Compte        = lazy(() => import('@/pages/compte'))
 const Promotions    = lazy(() => import('@/pages/Promotions'))
 
-// ✅ NOUVEAU : Page Callback
-const AuthCallback  = lazy(() => import('@/pages/AuthCallback'))
 
 function Loading() {
   return <div style={{ paddingTop: 80 }}><div className="spinner" /></div>
@@ -38,10 +37,6 @@ export default function App() {
           <Route path="/connexion"     element={<Auth />} />
           <Route path="/inscription"   element={<Auth />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
-          
-          {/* ✅ AJOUTE CETTE ROUTE */}
-          <Route path="/auth/callback" element={<AuthCallback />} />
-
           <Route path="/favoris"       element={<Favorites />} />
           <Route path="/boutiques"     element={<Boutiques />} />
           <Route path="/boutique/:slug" element={<Boutiques />} />
