@@ -91,12 +91,7 @@ function OrderModal({ onClose, items, total }) {
         ? buildWALivraison(form.name, form.email)
         : buildWARetrait(form.name, form.email)
 
-      // Sur mobile : whatsapp:// ouvre l'app directement
-      // Sur desktop : wa.me fonctionne bien
-      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
-      const url = isMobile
-        ? `whatsapp://send?phone=${WHATSAPP_NUMBER}&text=${text}`
-        : `https://wa.me/${WHATSAPP_NUMBER}?text=${text}`
+      const url = `https://api.whatsapp.com/send?phone=${WHATSAPP_NUMBER}&text=${text}`
 
       setWaUrl(url)       // ✅ stocker pour le bouton <a>
       setStep('success')
@@ -126,7 +121,7 @@ function OrderModal({ onClose, items, total }) {
             {/* ✅ <a> tag natif — jamais bloqué sur mobile */}
             <a
               href={waUrl}
-              target={/iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ? '_self' : '_blank'}
+              target='_blank'
               rel="noopener noreferrer"
               className="btn btn-primary"
               style={{ marginTop: 16, display: 'inline-flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}
