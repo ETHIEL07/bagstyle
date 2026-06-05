@@ -6,46 +6,53 @@ export default function AuthCallback() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    console.log("🔥 AuthCallback démarré");
-
     const handle = async () => {
       try {
+        // Supabase gère automatiquement le token dans l'URL hash/query
         const { data, error } = await supabase.auth.getSession();
-        console.log("📌 Session récupérée :", data);
 
         if (error) {
-          console.error("Erreur session:", error);
-          window.location.href = '/connexion';
+          console.error('Erreur session:', error);
+          navigate('/connexion', { replace: true });
           return;
         }
 
         if (data?.session) {
-          console.log("✅ Connexion réussie");
-          window.location.href = '/';
+          navigate('/accueil', { replace: true });
         } else {
-          console.log("❌ Pas de session");
-          window.location.href = '/connexion';
+          navigate('/connexion', { replace: true });
         }
       } catch (err) {
-        console.error("💥 Erreur grave:", err);
-        window.location.href = '/connexion';
+        console.error('Erreur AuthCallback:', err);
+        navigate('/connexion', { replace: true });
       }
     };
 
     handle();
-  }, []);
+  }, [navigate]);
 
   return (
     <div style={{
-      height: "100vh",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      fontSize: "22px",
-      backgroundColor: "#f8f9fa",
-      color: "#333"
+      height: '100vh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      flexDirection: 'column',
+      gap: '16px',
+      backgroundColor: '#f8f9fa',
+      color: '#333',
+      fontFamily: 'DM Sans, sans-serif',
     }}>
-      Connexion en cours...
+      <div style={{
+        width: 40,
+        height: 40,
+        border: '3px solid #d4537e',
+        borderTopColor: 'transparent',
+        borderRadius: '50%',
+        animation: 'spin 0.8s linear infinite',
+      }} />
+      <p style={{ fontSize: 16, color: '#666' }}>Connexion en cours...</p>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }

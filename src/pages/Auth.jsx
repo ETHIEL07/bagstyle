@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Eye, EyeOff, Mail, Lock, User, Phone, MapPin } from 'lucide-react'
-import { signIn, signUp, signInWithGoogle } from '@/lib/supabase'
+import { signIn, signUp, signInWithGoogle, supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/lib/store'
 import toast from 'react-hot-toast'
 import styles from './Auth.module.css'
@@ -30,6 +30,15 @@ export default function Auth() {
   const navigate = useNavigate()
   const setUser  = useAuthStore(s => s.setUser)
 
+  // Si déjà connecté → aller à l'accueil directement
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session) navigate('/accueil', { replace: true })
+    }
+    checkSession()
+  }, [navigate])
+
   const setField = (field) => (e) => setForm(f => ({ ...f, [field]: e.target.value }))
 
   useEffect(() => {
@@ -46,7 +55,7 @@ export default function Auth() {
         setUser(data.user)
         requestGeolocation(() => {})
         toast.success('Bienvenue ! 👋')
-        navigate('/')
+        navigate('/accueil')
       } else {
         const { data, error } = await signUp(form.email, form.password, {
           full_name: form.name,
@@ -68,6 +77,7 @@ export default function Auth() {
     try {
       const { error } = await signInWithGoogle()
       if (error) throw error
+      // La redirection vers /auth/callback est gérée par Supabase OAuth
     } catch (err) {
       toast.error(err.message || 'Erreur Google')
       setGoogleLoading(false)
@@ -79,7 +89,7 @@ export default function Auth() {
       <div className={styles.wrapper}>
         <div className={styles.card}>
 
-          <Link to="/" className={styles.logo}>
+          <Link to="/accueil" className={styles.logo}>
             Bag<span>Style</span>
           </Link>
 
