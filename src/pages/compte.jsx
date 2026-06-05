@@ -78,7 +78,7 @@ function OrdersSection({ userId }) {
           <div key={order.id} className={styles.orderCard}>
             <div className={styles.orderHeader} onClick={() => setExpanded(isOpen ? null : order.id)}>
               <div className={styles.orderLeft}>
-                <div className={styles.orderNum}>Commande #{order.id.slice(-6).toUpperCase()}</div>
+                <div className={styles.orderNum}>Commande #{String(order.id).slice(-6).toUpperCase()}</div>
                 <div className={styles.orderMeta}>
                   <Clock size={11} /> {date} · {order.delivery_mode === 'livraison' ? '🚚 Livraison' : '🏪 Retrait'}
                 </div>
