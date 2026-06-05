@@ -1,14 +1,15 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
+import { useAuthStore } from '@/lib/store';
 
 export default function AuthCallback() {
   const navigate = useNavigate();
+  const setUser = useAuthStore(s => s.setUser);
 
   useEffect(() => {
     const handle = async () => {
       try {
-        // Supabase gère automatiquement le token dans l'URL hash/query
         const { data, error } = await supabase.auth.getSession();
 
         if (error) {
@@ -18,9 +19,26 @@ export default function AuthCallback() {
         }
 
         if (data?.session) {
+          setUser(data.session.user);
           navigate('/accueil', { replace: true });
         } else {
-          navigate('/connexion', { replace: true });
+          // Session pas encore dispo, on écoute onAuthStateChange
+          const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+            if (session) {
+              setUser(session.user);
+              subscription.unsubscribe();
+              navigate('/accueil', { replace: true });
+            } else if (event === 'SIGNED_OUT') {
+              subscription.unsubscribe();
+              navigate('/connexion', { replace: true });
+            }
+          });
+
+          // Timeout de sécurité 5s
+          setTimeout(() => {
+            subscription.unsubscribe();
+            navigate('/connexion', { replace: true });
+          }, 5000);
         }
       } catch (err) {
         console.error('Erreur AuthCallback:', err);
@@ -29,7 +47,7 @@ export default function AuthCallback() {
     };
 
     handle();
-  }, [navigate]);
+  }, [navigate, setUser]);
 
   return (
     <div style={{
