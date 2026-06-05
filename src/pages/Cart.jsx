@@ -93,9 +93,12 @@ function OrderModal({ onClose, items, total }) {
 
       const url = `https://api.whatsapp.com/send?phone=${WHATSAPP_NUMBER}&text=${text}`
 
-      setWaUrl(url)       // ✅ stocker pour le bouton <a>
+      setWaUrl(url)
       setStep('success')
       toast.success('Commande enregistrée ! 🎉')
+
+      // ✅ Ouvrir WhatsApp immédiatement — déclenché dans le même tick que le submit
+      window.location.href = url
     } catch (err) {
       console.error(err)
       toast.error(err.message || 'Erreur lors de la commande')
